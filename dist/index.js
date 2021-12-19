@@ -1,4 +1,6 @@
-export default function serialize(func, options) {
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+function serialize(func, options) {
     let queue = [];
     let isRunning = false;
     async function run() {
@@ -37,4 +39,5 @@ export default function serialize(func, options) {
         });
     };
 }
+exports.default = serialize;
 //# sourceMappingURL=index.js.map
