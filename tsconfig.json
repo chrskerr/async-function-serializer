@@ -1,0 +1,16 @@
+{
+	"compilerOptions": {
+		"declaration": true,
+		"declarationMap": true,
+		"esModuleInterop": true,
+		"forceConsistentCasingInFileNames": true,
+		"outDir": "./dist", 
+		"moduleResolution": "node",
+		"sourceMap": true, 
+		"strict": true, 
+		"target": "esNext"
+	},
+	"include": [
+		"src"
+	]
+}
