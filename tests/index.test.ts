@@ -16,7 +16,7 @@ const asyncTestFunc = async ( wait: number ): Promise<number> => {
 
 const testInput = [ 1000, 500, 100, 200, 15, 30, 2000, 1000, 500, 50, 50, 25 ];
 const total = testInput.reduce<number>(( acc, curr ) => acc + curr, 0 );
-jest.setTimeout( total + 2000 );
+jest.setTimeout( total * 2 );
 
 test( "sync", async () => {
 	const serialisedSyncTestFunc = serializer( syncTestFunc );

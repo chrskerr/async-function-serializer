@@ -10,7 +10,7 @@ type SerializeOptions<T, R> = {
 		key: keyof T,
 		direction?: "asc" | "desc",
 	},
-	passForwardDataCallback?: ( input: T, previousResult: R ) => Promise<T>,
+	inputTransformer?: ( input: T, previousResult: Awaited<R> | undefined ) => Promise<T>,
 }
 
 type Result<R> = { 
@@ -21,20 +21,28 @@ type Result<R> = {
 export default function serialize<T, R, Q extends Result<R>>( func: ( input: T ) => R, options?: SerializeOptions<T, R> ): (( input: T ) => Promise<Q> ) {
 	let queue: Queue<T, Q> = [];
 	let isRunning = false;
-	let previousResult: R | undefined = undefined;
+	let previousResult: Awaited<R> | undefined = undefined;
 
 	async function run () {
-		const prevRunning = isRunning;
+		const wasIsRunning = isRunning;
 		isRunning = true;
 
-		const current = queue[ 0 ];
-
-		if ( !prevRunning && options?.delay ) {
+		if ( !wasIsRunning && options?.delay ) {
 			await new Promise( resolve => setTimeout( resolve, options.delay ));
 		}
 
-		if ( options?.passForwardDataCallback && previousResult ) {
-			current.input = await options.passForwardDataCallback( current.input, previousResult );
+		if ( options?.sortBy ) {
+			const key = options.sortBy.key;
+			queue = queue.sort(( a, b ) => options.sortBy?.direction === "desc" ? 
+				Number( b.input[ key ]) - Number( a.input[ key ]) :
+				Number( a.input[ key ]) - Number( b.input[ key ]),
+			);
+		}
+
+		const current = queue[ 0 ];
+
+		if ( options?.inputTransformer ) {
+			current.input = await options.inputTransformer( current.input, previousResult );
 		}
 
 		try {
@@ -58,22 +66,7 @@ export default function serialize<T, R, Q extends Result<R>>( func: ( input: T )
 
 	return async function ( input: T ): Promise<Q> {
 		return await new Promise<Q>( resolve => {
-			
-			const item = { resolve, input };
-
-			if ( options?.sortBy ) {
-				const key = options.sortBy.key;
-				queue = [ ...queue, item ]
-					.sort(( a, b ) => options.sortBy?.direction === "desc" ? 
-						Number( b.input[ key ]) - Number( a.input[ key ]) :
-						Number( a.input[ key ]) - Number( b.input[ key ]),
-					);
-
-			} else {
-				queue.push( item );
-
-			}
-
+			queue.push({ resolve, input });
 			if ( !isRunning ) run();
 		});
 	}; 

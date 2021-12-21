@@ -4,7 +4,7 @@ declare type SerializeOptions<T, R> = {
         key: keyof T;
         direction?: "asc" | "desc";
     };
-    passForwardDataCallback?: (input: T, previousResult: R) => Promise<T>;
+    inputTransformer?: (input: T, previousResult: Awaited<R> | undefined) => Promise<T>;
 };
 declare type Result<R> = {
     data?: R;
