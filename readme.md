@@ -29,16 +29,23 @@ const exampleFunction = async ( wait: number ): Promise<number> => {
 
 const serialExample = serializer( exampleFunction, options? );
 
-const { data. error } = await serialExample( 1000 );
+const { data, error } = await serialExample( 1000 );
 ```
 
 ```ts
-const options = {
- sortBy: {
-  key: keyof functionInput,
-  dir: 'asc' | 'desc',
- }, // an optional key which can be used to sort the queue when a new item is added. Will only work when the input type is an object.
- delay: number, // delay the initial execution of starting the queue, in case you have a large number of items being added to the queue and wish to ensure that sorting has happened before starting to execute
+type SerializeOptions<T, R> = {
+ // delay the initial execution of the queue 
+ // potentially useful to delay sorting until more than one item is in the queue
+ delay?: number,
+
+ // can be used to sort the queue before the next item is tdrawn from it. Will only work when the input type is an object.
+ sortBy?: {
+  key: keyof T,
+  direction?: "asc" | "desc",
+ },
+
+ // used to transform the input before calling the next function in the queue. useful if you need to carry-forward data from the result before
+ inputTransformer?: ( input: T, previousResult: Awaited<PreviousResult> | undefined ) => T | Promise<T>,
 }
 ```
 

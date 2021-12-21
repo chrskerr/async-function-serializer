@@ -4,13 +4,13 @@ type Queue<T, Q> = {
 	input: T,
 }[]
 
-type SerializeOptions<T, R> = {
+export type SerializeOptions<T, R> = {
 	delay?: number,
 	sortBy?: {
 		key: keyof T,
 		direction?: "asc" | "desc",
 	},
-	inputTransformer?: ( input: T, previousResult: Awaited<R> | undefined ) => Promise<T>,
+	inputTransformer?: ( input: T, previousResult: Awaited<R> | undefined ) => T | Promise<T>,
 }
 
 type Result<R> = { 

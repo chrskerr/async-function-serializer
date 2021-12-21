@@ -1,10 +1,10 @@
-declare type SerializeOptions<T, R> = {
+export declare type SerializeOptions<T, R> = {
     delay?: number;
     sortBy?: {
         key: keyof T;
         direction?: "asc" | "desc";
     };
-    inputTransformer?: (input: T, previousResult: Awaited<R> | undefined) => Promise<T>;
+    inputTransformer?: (input: T, previousResult: Awaited<R> | undefined) => T | Promise<T>;
 };
 declare type Result<R> = {
     data?: R;
