@@ -13,6 +13,8 @@ This package is a small, simple helper designed to convert a function from paral
 - Returns the results of the execution, and an error object if thrown
 - Includes a sortByKey option to keep your queue sorted when adding to the queue (only works when the input is type object)
 
+[Background](https://www.chriskerr.com.au/serialising-async-functions)
+
 ## Usage
 
 ```bash
@@ -33,26 +35,53 @@ const { data, error } = await serialExample( 1000 );
 ```
 
 ```ts
-type SerializeOptions<T, R> = {
- // Delay the initial execution of the queue 
- // Potentially useful to delay sorting until more than one item is in the queue
+type SerializeOptions<Input, Return> = {
+ /**
+  * How long to delay before starting initial execution
+  * @defaultValue 0
+  */
  delay?: number,
 
- // Can be used to sort the queue before the next item is drawn from it. 
- // Will only work when the input type is an object, and the key is a number or string
+ /**
+  * Used to sort the queue at the beginning of each execution cycle
+  * @defaultValue undefined
+  */
  sortBy?: {
-  key: keyof T,
-  direction?: "asc" | "desc", // default 'asc'
+  /**
+   * Key of input to sort. Will only populate if input is of type object, and only supports top-level keys.
+   */
+  key: keyof Input,
+  /**
+   * Sort direction.
+   * @defaultValue 'asc'
+   */
+  direction?: "asc" | "desc",
  },
 
- // Used to transform the input before calling the next function in the queue. useful if you need to carry-forward data from the result before
- inputTransformer?: ( input: T, previousResult: Awaited<PreviousResult> | undefined ) => T | Promise<T>,
-
-// Allows inputs to be batched. Only the executed items will return a result
-  batch?: {
+ /**
+  * Batch input when adding them to the queue.
+  * @defaultValue undefined
+  */
+ batch?: {
+  /**
+   * How to long wait before adding the batch to the queue
+   */
   debounceInterval: number,
-  batchTransformer: ( existingBatch: T | undefined,  newInput: T ) => T,
+
+  /**
+   * Function to combine the new queue item into the current batch
+   * @param existingBatch - the current batch
+   * @param newInput - the new item being added into the batch
+   */
+  batchTransformer: ( existingBatch: Input | undefined,  newInput: Input ) => Input,
  }
+
+ /**
+  * Function to transform the input at the beginning of each execution cycle
+  * @param input - the current value being transformed
+  * @param previousResult - the results from the previous execution, if any
+  */
+ inputTransformer?: ( input: Input, previousResult: Awaited<Return> | undefined ) => Input | Promise<Input>,
 }
 ```
 

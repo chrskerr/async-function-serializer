@@ -1,10 +1,10 @@
 
-type Queue<T, Q> = {
-	resolve: ( result: Q ) => void,
-	input: T,
+type Queue<Input, Return> = {
+	resolve: ( result: Return ) => void,
+	input: Input,
 }[]
 
-export type SerializeOptions<T, R> = {
+export type SerializeOptions<Input, Return> = {
 	/**
 	 * How long to delay before starting initial execution
 	 * @defaultValue 0
@@ -19,7 +19,7 @@ export type SerializeOptions<T, R> = {
 		/**
 		 * Key of input to sort. Will only populate if input is of type object, and only supports top-level keys.
 		 */
-		key: keyof T,
+		key: keyof Input,
 		/**
 		 * Sort direction.
 		 * @defaultValue 'asc'
@@ -42,7 +42,7 @@ export type SerializeOptions<T, R> = {
 		 * @param existingBatch - the current batch
 		 * @param newInput - the new item being added into the batch
 		 */
-		batchTransformer: ( existingBatch: T | undefined,  newInput: T ) => T,
+		batchTransformer: ( existingBatch: Input | undefined,  newInput: Input ) => Input,
 	}
 
 	/**
@@ -50,7 +50,7 @@ export type SerializeOptions<T, R> = {
 	 * @param input - the current value being transformed
 	 * @param previousResult - the results from the previous execution, if any
 	 */
-	inputTransformer?: ( input: T, previousResult: Awaited<R> | undefined ) => T | Promise<T>,
+	inputTransformer?: ( input: Input, previousResult: Awaited<Return> | undefined ) => Input | Promise<Input>,
 }
 
 type Result<R> = { 
@@ -59,21 +59,21 @@ type Result<R> = {
 }
 
 export default function serialize<
-	T, R, Q extends Result<R>
+	Input, Return, EnrichedReturn extends Result<Return>
 >( 
-	func: ( input: T ) => R, 
-	options?: SerializeOptions<T, R>, 
+	func: ( input: Input ) => Return, 
+	options?: SerializeOptions<Input, Return>, 
 ): 
-	( input: T ) => Promise<Q> 
+	( input: Input ) => Promise<EnrichedReturn> 
 {
 
-	let queue: Queue<T, Q> = [];
+	let queue: Queue<Input, EnrichedReturn> = [];
 	let isRunning = false;
-	let previousResult: Awaited<R> | undefined = undefined;
+	let previousResult: Awaited<Return> | undefined = undefined;
 	
 	let batchTimer: ReturnType<typeof setTimeout> | undefined = undefined;
-	let inProgressBatch: T | undefined = undefined;
-	let previousPromise: (( result: Q ) => void ) | undefined = undefined;
+	let inProgressBatch: Input | undefined = undefined;
+	let previousPromise: (( result: EnrichedReturn ) => void ) | undefined = undefined;
 
 	async function run () {
 		const wasIsRunning = isRunning;
@@ -111,12 +111,12 @@ export default function serialize<
 
 		try {
 			const result = await func( current.input );
-			current.resolve({ data: result as R } as Q );
+			current.resolve({ data: result as Return } as EnrichedReturn );
 
 			previousResult = result;
 
 		} catch ( error ) {
-			current.resolve({ message: error } as Q );
+			current.resolve({ message: error } as EnrichedReturn );
 			
 		}
 		
@@ -127,8 +127,8 @@ export default function serialize<
 		isRunning = false;
 	}
 
-	return async function ( input: T ): Promise<Q> {
-		return await new Promise<Q>( resolve => {
+	return async function ( input: Input ): Promise<EnrichedReturn> {
+		return await new Promise<EnrichedReturn>( resolve => {
 
 			if ( !options?.batch ) {
 				queue.push({ resolve, input });
@@ -140,7 +140,7 @@ export default function serialize<
 				if ( batchTimer ) clearTimeout( batchTimer );
 				inProgressBatch = batchTransformer( inProgressBatch, input );
 
-				if ( previousPromise ) previousPromise({ message: "batched" } as Q );
+				if ( previousPromise ) previousPromise({ message: "batched" } as EnrichedReturn );
 				previousPromise = resolve;
 
 				batchTimer = setTimeout(() => {

@@ -1,4 +1,4 @@
-export declare type SerializeOptions<T, R> = {
+export declare type SerializeOptions<Input, Return> = {
     /**
      * How long to delay before starting initial execution
      * @defaultValue 0
@@ -12,7 +12,7 @@ export declare type SerializeOptions<T, R> = {
         /**
          * Key of input to sort. Will only populate if input is of type object, and only supports top-level keys.
          */
-        key: keyof T;
+        key: keyof Input;
         /**
          * Sort direction.
          * @defaultValue 'asc'
@@ -33,19 +33,19 @@ export declare type SerializeOptions<T, R> = {
          * @param existingBatch - the current batch
          * @param newInput - the new item being added into the batch
          */
-        batchTransformer: (existingBatch: T | undefined, newInput: T) => T;
+        batchTransformer: (existingBatch: Input | undefined, newInput: Input) => Input;
     };
     /**
      * Function to transform the input at the beginning of each execution cycle
      * @param input - the current value being transformed
      * @param previousResult - the results from the previous execution, if any
      */
-    inputTransformer?: (input: T, previousResult: Awaited<R> | undefined) => T | Promise<T>;
+    inputTransformer?: (input: Input, previousResult: Awaited<Return> | undefined) => Input | Promise<Input>;
 };
 declare type Result<R> = {
     data?: R;
     message?: unknown;
 };
-export default function serialize<T, R, Q extends Result<R>>(func: (input: T) => R, options?: SerializeOptions<T, R>): (input: T) => Promise<Q>;
+export default function serialize<Input, Return, EnrichedReturn extends Result<Return>>(func: (input: Input) => Return, options?: SerializeOptions<Input, Return>): (input: Input) => Promise<EnrichedReturn>;
 export {};
 //# sourceMappingURL=index.d.ts.map
