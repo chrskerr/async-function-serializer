@@ -34,20 +34,21 @@ const { data, error } = await serialExample( 1000 );
 
 ```ts
 type SerializeOptions<T, R> = {
- // delay the initial execution of the queue 
- // potentially useful to delay sorting until more than one item is in the queue
+ // Delay the initial execution of the queue 
+ // Potentially useful to delay sorting until more than one item is in the queue
  delay?: number,
 
- // can be used to sort the queue before the next item is tdrawn from it. Will only work when the input type is an object.
+ // Can be used to sort the queue before the next item is drawn from it. 
+ // Will only work when the input type is an object, and the key is a number or string
  sortBy?: {
   key: keyof T,
-  direction?: "asc" | "desc",
+  direction?: "asc" | "desc", // default 'asc'
  },
 
- // used to transform the input before calling the next function in the queue. useful if you need to carry-forward data from the result before
+ // Used to transform the input before calling the next function in the queue. useful if you need to carry-forward data from the result before
  inputTransformer?: ( input: T, previousResult: Awaited<PreviousResult> | undefined ) => T | Promise<T>,
 
-// allows inputs to be batched. Only the executed items will return a result
+// Allows inputs to be batched. Only the executed items will return a result
   batch?: {
   debounceInterval: number,
   batchTransformer: ( existingBatch: T | undefined,  newInput: T ) => T,

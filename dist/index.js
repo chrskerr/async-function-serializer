@@ -25,11 +25,19 @@ function serialize(func, options) {
             }
             if (options === null || options === void 0 ? void 0 : options.sortBy) {
                 const key = options.sortBy.key;
+                const direction = options.sortBy.direction || "asc";
                 queue = queue.sort((a, b) => {
-                    var _a;
-                    return ((_a = options.sortBy) === null || _a === void 0 ? void 0 : _a.direction) === "desc" ?
-                        Number(b.input[key]) - Number(a.input[key]) :
-                        Number(a.input[key]) - Number(b.input[key]);
+                    const valueOne = direction === "asc" ? a.input[key] : b.input[key];
+                    const valueTwo = direction === "asc" ? b.input[key] : a.input[key];
+                    if (typeof valueOne === "number" && typeof valueTwo === "number") {
+                        return valueOne - valueTwo;
+                    }
+                    else if (typeof valueOne === "string" && typeof valueTwo === "string") {
+                        return valueOne.localeCompare(valueTwo);
+                    }
+                    else {
+                        return 0;
+                    }
                 });
             }
             const current = queue[0];
@@ -42,7 +50,7 @@ function serialize(func, options) {
                 previousResult = result;
             }
             catch (error) {
-                current.resolve({ error });
+                current.resolve({ message: error });
             }
             queue.shift();
             if (queue.length)
@@ -64,7 +72,7 @@ function serialize(func, options) {
                         clearTimeout(batchTimer);
                     inProgressBatch = batchTransformer(inProgressBatch, input);
                     if (previousPromise)
-                        previousPromise({ error: "batched" });
+                        previousPromise({ message: "batched" });
                     previousPromise = resolve;
                     batchTimer = setTimeout(() => {
                         queue.push({ resolve, input: inProgressBatch || input });
