@@ -10,6 +10,10 @@ export type SerializeOptions<T, R> = {
 		key: keyof T,
 		direction?: "asc" | "desc",
 	},
+	batch?: {
+		debounceInterval: number,
+		batchTransformer: ( existingBatch: T | undefined,  newInput: T ) => T,
+	}
 	inputTransformer?: ( input: T, previousResult: Awaited<R> | undefined ) => T | Promise<T>,
 }
 
@@ -22,6 +26,10 @@ export default function serialize<T, R, Q extends Result<R>>( func: ( input: T )
 	let queue: Queue<T, Q> = [];
 	let isRunning = false;
 	let previousResult: Awaited<R> | undefined = undefined;
+	
+	let batchTimer: ReturnType<typeof setTimeout> | undefined = undefined;
+	let inProgressBatch: T | undefined = undefined;
+	let previousPromise: (( result: Q ) => void ) | undefined = undefined;
 
 	async function run () {
 		const wasIsRunning = isRunning;
@@ -66,8 +74,30 @@ export default function serialize<T, R, Q extends Result<R>>( func: ( input: T )
 
 	return async function ( input: T ): Promise<Q> {
 		return await new Promise<Q>( resolve => {
-			queue.push({ resolve, input });
-			if ( !isRunning ) run();
+
+			if ( !options?.batch ) {
+				queue.push({ resolve, input });
+				if ( !isRunning ) run();
+
+			} else {
+				const { debounceInterval, batchTransformer } = options.batch;
+
+				if ( batchTimer ) clearTimeout( batchTimer );
+				inProgressBatch = batchTransformer( inProgressBatch, input );
+
+				if ( previousPromise ) previousPromise({ error: "batched" } as unknown as Q );
+				previousPromise = resolve;
+
+				batchTimer = setTimeout(() => {
+					queue.push({ resolve, input: inProgressBatch || input });
+					
+					inProgressBatch = undefined;
+					previousPromise = undefined;
+					
+					if ( !isRunning ) run();
+
+				}, debounceInterval );
+			}
 		});
 	}; 
 }

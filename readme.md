@@ -46,6 +46,12 @@ type SerializeOptions<T, R> = {
 
  // used to transform the input before calling the next function in the queue. useful if you need to carry-forward data from the result before
  inputTransformer?: ( input: T, previousResult: Awaited<PreviousResult> | undefined ) => T | Promise<T>,
+
+// allows inputs to be batched. Only the executed items will return a result
+  batch?: {
+  debounceInterval: number,
+  batchTransformer: ( existingBatch: T | undefined,  newInput: T ) => T,
+ }
 }
 ```
 

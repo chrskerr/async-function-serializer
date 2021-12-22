@@ -4,6 +4,10 @@ export declare type SerializeOptions<T, R> = {
         key: keyof T;
         direction?: "asc" | "desc";
     };
+    batch?: {
+        debounceInterval: number;
+        batchTransformer: (existingBatch: T | undefined, newInput: T) => T;
+    };
     inputTransformer?: (input: T, previousResult: Awaited<R> | undefined) => T | Promise<T>;
 };
 declare type Result<R> = {

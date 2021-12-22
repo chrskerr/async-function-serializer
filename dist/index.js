@@ -13,6 +13,9 @@ function serialize(func, options) {
     let queue = [];
     let isRunning = false;
     let previousResult = undefined;
+    let batchTimer = undefined;
+    let inProgressBatch = undefined;
+    let previousPromise = undefined;
     function run() {
         return __awaiter(this, void 0, void 0, function* () {
             const wasIsRunning = isRunning;
@@ -50,9 +53,27 @@ function serialize(func, options) {
     return function (input) {
         return __awaiter(this, void 0, void 0, function* () {
             return yield new Promise(resolve => {
-                queue.push({ resolve, input });
-                if (!isRunning)
-                    run();
+                if (!(options === null || options === void 0 ? void 0 : options.batch)) {
+                    queue.push({ resolve, input });
+                    if (!isRunning)
+                        run();
+                }
+                else {
+                    const { debounceInterval, batchTransformer } = options.batch;
+                    if (batchTimer)
+                        clearTimeout(batchTimer);
+                    inProgressBatch = batchTransformer(inProgressBatch, input);
+                    if (previousPromise)
+                        previousPromise({ error: "batched" });
+                    previousPromise = resolve;
+                    batchTimer = setTimeout(() => {
+                        queue.push({ resolve, input: inProgressBatch || input });
+                        inProgressBatch = undefined;
+                        previousPromise = undefined;
+                        if (!isRunning)
+                            run();
+                    }, debounceInterval);
+                }
             });
         });
     };
