@@ -1,13 +1,14 @@
 {
 	"name": "async-function-serializer",
-	"version": "1.2.3",
+	"version": "1.3.0",
 	"description": "A helper which produces serial async functions without losing return values",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"start": "tsc && node dist/index.js",
-		"test": "tsc && jest",
-		"deploy": "tsc && npm run test && npm publish"
+		"build": "tsc && uglifyjs dist/index.js -o dist/index.js",
+		"start": "npm run build && node dist/index.js",
+		"test": "npm run build && jest",
+		"deploy": "npm run test && npm publish"
 	},
 	"author": "Chris Kerr",
 	"license": "GPL-3.0",
@@ -20,7 +21,8 @@
 		"eslint-plugin-tsdoc": "^0.2.14",
 		"jest": "^27.4.3",
 		"ts-jest": "^27.0.7",
-		"typescript": "^4.5.4"
+		"typescript": "^4.5.4",
+		"uglify-js": "^3.14.5"
 	},
 	"repository": {
 		"type": "git",

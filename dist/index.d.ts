@@ -17,7 +17,7 @@ export declare type SerializeOptions<Input, Return> = {
          * Sort direction.
          * @defaultValue 'asc'
          */
-        direction?: "asc" | "desc";
+        direction?: 'asc' | 'desc';
     };
     /**
      * Batch input when adding them to the queue.
