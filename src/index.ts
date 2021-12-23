@@ -38,6 +38,11 @@ export type SerializeOptions<Input, Return> = {
 		debounceInterval: number,
 
 		/**
+		 * Maximum duration before a batch will close
+		 */
+		maxDebounceInterval?: number,
+
+		/**
 		 * Function to combine the new queue item into the current batch
 		 * @param existingBatch - the current batch
 		 * @param newInput - the new item being added into the batch
@@ -72,6 +77,7 @@ export default function serialize<
 	let previousResult: Awaited<Return> | undefined = undefined;
 	
 	let batchTimer: ReturnType<typeof setTimeout> | undefined = undefined;
+	let batchStartTimestamp: number | undefined = undefined;
 	let inProgressBatch: Input | undefined = undefined;
 	let previousPromise: (( result: EnrichedReturn ) => void ) | undefined = undefined;
 
@@ -135,7 +141,13 @@ export default function serialize<
 				if ( !isRunning ) run();
 
 			} else {
-				const { debounceInterval, batchTransformer } = options.batch;
+				const { debounceInterval, batchTransformer, maxDebounceInterval } = options.batch;
+
+				if ( !batchStartTimestamp ) batchStartTimestamp =  new Date().valueOf();
+				const elapsedTime = maxDebounceInterval ? Math.max( new Date().valueOf() - batchStartTimestamp, 0 ) : 0;
+				const availabledTime = maxDebounceInterval ? Math.max( maxDebounceInterval - elapsedTime, 0 ): Infinity;
+
+				const thisDebounceInterval = Math.min( debounceInterval, availabledTime );
 
 				if ( batchTimer ) clearTimeout( batchTimer );
 				inProgressBatch = batchTransformer( inProgressBatch, input );
@@ -148,10 +160,11 @@ export default function serialize<
 					
 					inProgressBatch = undefined;
 					previousPromise = undefined;
+					batchStartTimestamp = undefined;
 					
 					if ( !isRunning ) run();
 
-				}, debounceInterval );
+				}, thisDebounceInterval );
 			}
 		});
 	}; 

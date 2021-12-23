@@ -14,6 +14,7 @@ function serialize(func, options) {
     let isRunning = false;
     let previousResult = undefined;
     let batchTimer = undefined;
+    let batchStartTimestamp = undefined;
     let inProgressBatch = undefined;
     let previousPromise = undefined;
     function run() {
@@ -67,7 +68,12 @@ function serialize(func, options) {
                         run();
                 }
                 else {
-                    const { debounceInterval, batchTransformer } = options.batch;
+                    const { debounceInterval, batchTransformer, maxDebounceInterval } = options.batch;
+                    if (!batchStartTimestamp)
+                        batchStartTimestamp = new Date().valueOf();
+                    const elapsedTime = maxDebounceInterval ? Math.max(new Date().valueOf() - batchStartTimestamp, 0) : 0;
+                    const availabledTime = maxDebounceInterval ? Math.max(maxDebounceInterval - elapsedTime, 0) : Infinity;
+                    const thisDebounceInterval = Math.min(debounceInterval, availabledTime);
                     if (batchTimer)
                         clearTimeout(batchTimer);
                     inProgressBatch = batchTransformer(inProgressBatch, input);
@@ -78,9 +84,10 @@ function serialize(func, options) {
                         queue.push({ resolve, input: inProgressBatch || input });
                         inProgressBatch = undefined;
                         previousPromise = undefined;
+                        batchStartTimestamp = undefined;
                         if (!isRunning)
                             run();
-                    }, debounceInterval);
+                    }, thisDebounceInterval);
                 }
             });
         });

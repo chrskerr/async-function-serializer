@@ -29,6 +29,10 @@ export declare type SerializeOptions<Input, Return> = {
          */
         debounceInterval: number;
         /**
+         * Maximum duration before a batch will close
+         */
+        maxDebounceInterval?: number;
+        /**
          * Function to combine the new queue item into the current batch
          * @param existingBatch - the current batch
          * @param newInput - the new item being added into the batch
