@@ -1,11 +1,11 @@
 {
 	"name": "async-function-serializer",
-	"version": "1.4.0",
+	"version": "1.4.1",
 	"description": "A helper which produces serial async functions without losing return values",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",
 	"scripts": {
-		"build": "tsc && uglifyjs dist/index.js -o dist/index.js",
+		"build": "tsc && uglifyjs dist/index.js -m -c -o dist/index.js",
 		"start": "npm run build && node dist/index.js",
 		"test": "npm run build && jest",
 		"deploy": "npm run test && npm publish"
