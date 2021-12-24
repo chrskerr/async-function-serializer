@@ -5,15 +5,27 @@
 [![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
 [![NPM Version](https://img.shields.io/npm/v/async-function-serializer)](https://www.npmjs.com/package/async-function-serializer)
 
-## Purpose
+## Why
 
-This package is a small, simple helper designed to convert a function from parallel to serial, ensuring that the next item in the queue does not run until the current has returned.
+Initially, I needed to queue some fetch calls in another project, and since I was unaware of the Async package, I wrote something fast & dirty myself.
 
-- Provides an ability to prevent function execution overlap due to differing execution time
-- Returns the results of the execution, and an error object if thrown
-- Includes a sortByKey option to keep your queue sorted when adding to the queue (only works when the input is type object)
+I then needed more functionality, and testing, and etc, so I split it out into a little package to see if I could make something which scratched my own itch.
 
-[Background](https://www.chriskerr.com.au/serialising-async-functions)
+Any time I think of something else I might need, or am just interested to see if I am capable of building, then I add it to this repo.
+
+### Features
+
+- Basic synchronous and asynchronous queue
+- Optional execution concurrency
+- Input transformer, allowing most recent results to influence the execution of the next step
+- Returns execution results or error
+- Batching on addition to queue
+- Sorting immediately before drawing from queue
+- Initial execution delaying
+
+### Background
+
+[https://www.chriskerr.com.au/serialising-async-functions](https://www.chriskerr.com.au/serialising-async-functions)
 
 ## Usage
 
@@ -37,10 +49,16 @@ const { data, error } = await serialExample( 1000 );
 ```ts
 type SerializeOptions<Input, Return> = {
  /**
+  * Maximum number of simultaneous executions
+  * @defaultValue 1
+  */
+ concurrency?: number;
+
+ /**
   * How long to delay before starting initial execution
   * @defaultValue 0
   */
- delay?: number,
+ delay?: number;
 
  /**
   * Used to sort the queue at the beginning of each execution cycle
@@ -50,13 +68,13 @@ type SerializeOptions<Input, Return> = {
   /**
    * Key of input to sort. Will only populate if input is of type object, and only supports top-level keys.
    */
-  key: keyof Input,
+  key: keyof Input;
   /**
    * Sort direction.
    * @defaultValue 'asc'
    */
-  direction?: "asc" | "desc",
- },
+  direction?: 'asc' | 'desc';
+ };
 
  /**
   * Batch input when adding them to the queue.
@@ -66,28 +84,34 @@ type SerializeOptions<Input, Return> = {
   /**
    * How to long wait before adding the batch to the queue
    */
-  debounceInterval: number,
+  debounceInterval: number;
 
   /**
    * Maximum duration before a batch will close
    */
-  maxDebounceInterval?: number,
+  maxDebounceInterval?: number;
 
   /**
    * Function to combine the new queue item into the current batch
    * @param existingBatch - the current batch
    * @param newInput - the new item being added into the batch
    */
-  batchTransformer: ( existingBatch: Input | undefined,  newInput: Input ) => Input,
- }
+  batchTransformer: (
+   existingBatch: Input | undefined,
+   newInput: Input,
+  ) => Input;
+ };
 
  /**
   * Function to transform the input at the beginning of each execution cycle
   * @param input - the current value being transformed
   * @param previousResult - the results from the previous execution, if any
   */
- inputTransformer?: ( input: Input, previousResult: Awaited<Return> | undefined ) => Input | Promise<Input>,
-}
+ inputTransformer?: (
+  input: Input,
+  previousResult: Awaited<Return> | undefined,
+ ) => Input | Promise<Input>;
+};
 ```
 
 ## Bugs, Feedback & Contributions

@@ -1,5 +1,10 @@
 export declare type SerializeOptions<Input, Return> = {
     /**
+     * Maximum number of simultaneous executions
+     * @defaultValue 1
+     */
+    concurrency?: number;
+    /**
      * How long to delay before starting initial execution
      * @defaultValue 0
      */

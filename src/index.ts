@@ -5,6 +5,12 @@ type Queue<Input, Return> = {
 
 export type SerializeOptions<Input, Return> = {
 	/**
+	 * Maximum number of simultaneous executions
+	 * @defaultValue 1
+	 */
+	concurrency?: number;
+
+	/**
 	 * How long to delay before starting initial execution
 	 * @defaultValue 0
 	 */
@@ -77,7 +83,6 @@ export default function serialize<
 	options?: SerializeOptions<Input, Return>,
 ): (input: Input) => Promise<EnrichedReturn> {
 	let queue: Queue<Input, EnrichedReturn> = [];
-	let isRunning = false;
 	let previousResult: Awaited<Return> | undefined = undefined;
 
 	let batchTimer: ReturnType<typeof setTimeout> | undefined = undefined;
@@ -86,14 +91,30 @@ export default function serialize<
 	let previousPromise: ((result: EnrichedReturn) => void) | undefined =
 		undefined;
 
-	async function run() {
-		const wasIsRunning = isRunning;
-		isRunning = true;
+	const maxExecutions = options?.concurrency || 1;
+	let currentExecutions = 0;
 
-		if (!wasIsRunning && options?.delay) {
-			await new Promise(resolve => setTimeout(resolve, options.delay));
+	let delayPromise: Promise<undefined> | undefined = undefined;
+
+	async function start() {
+		if (currentExecutions >= maxExecutions) return;
+
+		const mightDelay = currentExecutions === 0;
+
+		currentExecutions += 1;
+
+		if (mightDelay && options?.delay) {
+			delayPromise = new Promise(resolve =>
+				setTimeout(resolve, options.delay),
+			);
 		}
 
+		await delayPromise;
+
+		run();
+	}
+
+	async function run() {
 		if (options?.sortBy) {
 			const key = options.sortBy.key;
 			const direction = options.sortBy.direction || 'asc';
@@ -119,35 +140,33 @@ export default function serialize<
 			});
 		}
 
-		const current = queue[0];
+		const current = queue.shift();
+		if (current) {
+			if (options?.inputTransformer) {
+				current.input = await options.inputTransformer(
+					current.input,
+					previousResult,
+				);
+			}
 
-		if (options?.inputTransformer) {
-			current.input = await options.inputTransformer(
-				current.input,
-				previousResult,
-			);
+			try {
+				const result = await func(current.input);
+				current.resolve({ data: result as Return } as EnrichedReturn);
+				previousResult = result;
+			} catch (error) {
+				current.resolve({ message: error } as EnrichedReturn);
+			}
 		}
-
-		try {
-			const result = await func(current.input);
-			current.resolve({ data: result as Return } as EnrichedReturn);
-			previousResult = result;
-		} catch (error) {
-			current.resolve({ message: error } as EnrichedReturn);
-		}
-
-		queue.shift();
 
 		if (queue.length) await run();
-
-		isRunning = false;
+		else currentExecutions -= 1;
 	}
 
 	return async function (input: Input): Promise<EnrichedReturn> {
 		return await new Promise<EnrichedReturn>(resolve => {
 			if (!options?.batch) {
 				queue.push({ resolve, input });
-				if (!isRunning) run();
+				start();
 			} else {
 				const {
 					debounceInterval,
@@ -162,13 +181,13 @@ export default function serialize<
 					? Math.max(new Date().valueOf() - batchStartTimestamp, 0)
 					: 0;
 
-				const availabledTime = maxDebounceInterval
+				const availableTime = maxDebounceInterval
 					? Math.max(maxDebounceInterval - elapsedTime, 0)
 					: Infinity;
 
 				const thisDebounceInterval = Math.min(
 					debounceInterval,
-					availabledTime,
+					availableTime,
 				);
 
 				if (batchTimer) clearTimeout(batchTimer);
@@ -185,7 +204,7 @@ export default function serialize<
 					previousPromise = undefined;
 					batchStartTimestamp = undefined;
 
-					if (!isRunning) run();
+					start();
 				}, thisDebounceInterval);
 			}
 		});
