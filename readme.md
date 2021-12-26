@@ -1,9 +1,11 @@
 # Async Function Serializer
 
-![gzip size badge](https://img.badgesize.io/chrskerr/async-function-serializer/master/dist/index.js?compression=gzip)
-![Jest](https://github.com/chrskerr/async-function-serializer/actions/workflows/tests.yml/badge.svg?event=push)
-[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
-[![NPM Version](https://img.shields.io/npm/v/async-function-serializer)](https://www.npmjs.com/package/async-function-serializer)
+[![Version][version-badge]][package]
+[![Bundle size][bundlephobia-badge]][bundlephobia]
+[![Downloads][downloads-badge]][npmtrends]
+
+[![GPL 3.0 Licence][license-badge]][license]
+[![Test status][test-status-badge]][test-status]
 
 ## Why
 
@@ -117,3 +119,18 @@ type SerializeOptions<Input, Return> = {
 ## Bugs, Feedback & Contributions
 
 I'd be glad to hear from you! So please provide any through issues, discussions or as a pull request above 😃
+
+[bundlephobia]: https://bundlephobia.com/package/async-function-serializer
+[bundlephobia-badge]: https://img.shields.io/bundlephobia/minzip/async-function-serializer?style=flat-square
+
+[test-status]: https://github.com/chrskerr/async-function-serializer/actions/workflows/tests.yml
+[test-status-badge]: https://img.shields.io/github/workflow/status/chrskerr/async-function-serializer/Jest?style=flat-square&label=tests
+
+[license]: LICENSE
+[license-badge]: https://img.shields.io/npm/l/async-function-serializer.svg?style=flat-square&color=blue
+
+[package]: https://npmjs.com/package/async-function-serializer
+[version-badge]: https://img.shields.io/npm/v/async-function-serializer.svg?style=flat-square
+
+[npmtrends]: https://www.npmtrends.com/async-function-serializer
+[downloads-badge]: https://img.shields.io/npm/dm/async-function-serializer.svg?style=flat-square
