@@ -71,7 +71,7 @@ export type SerializeOptions<Input, Return> = {
 
 type InputOptions = {
 	/**
-	 * If a current batch is in-progress, this will close the batch to enable starting a new one.
+	 * This will force-start a new batch. If another batch is in-progress, it will be immediately added to queue.
 	 * */
 	startNewBatch?: boolean;
 };
