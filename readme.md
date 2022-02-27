@@ -120,7 +120,7 @@ type SerializeOptions<Input, Return> = {
 
 ## Input options
 
-```tsc
+```ts
 type InputOptions = {
  /**
   * This will force-start a new batch. If another batch is in-progress, it will be immediately added to queue.
