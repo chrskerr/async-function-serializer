@@ -27,7 +27,7 @@ Any time I think of something else I might need, or am just interested to see if
 
 ### Background
 
-[https://www.chriskerr.com.au/serialising-async-functions](https://www.chriskerr.com.au/serialising-async-functions)
+[https://www.chriskerr.dev/writing/serialising-async-functions](https://www.chriskerr.dev/writing/serialising-async-functions)
 
 ## Usage
 
