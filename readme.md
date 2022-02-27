@@ -45,8 +45,10 @@ const exampleFunction = async ( wait: number ): Promise<number> => {
 
 const serialExample = serializer( exampleFunction, options? );
 
-const { data, error } = await serialExample( 1000 );
+const { data, error } = await serialExample( 1000, inputOptions? );
 ```
+
+## Serializer options
 
 ```ts
 type SerializeOptions<Input, Return> = {
@@ -113,6 +115,17 @@ type SerializeOptions<Input, Return> = {
   input: Input,
   previousResult: Awaited<Return> | undefined,
  ) => Input | Promise<Input>;
+};
+```
+
+## Input options
+
+```tsc
+type InputOptions = {
+ /**
+  * If a current batch is in-progress, this will close the batch to enable starting a new one.
+  * */
+ startNewBatch?: boolean;
 };
 ```
 

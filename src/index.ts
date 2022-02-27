@@ -69,6 +69,13 @@ export type SerializeOptions<Input, Return> = {
 	) => Input | Promise<Input>;
 };
 
+type InputOptions = {
+	/**
+	 * If a current batch is in-progress, this will close the batch to enable starting a new one.
+	 * */
+	startNewBatch?: boolean;
+};
+
 type Result<R> = {
 	data?: R;
 	message?: unknown;
@@ -81,11 +88,12 @@ export default function serialize<
 >(
 	func: (input: Input) => Return,
 	options?: SerializeOptions<Input, Return>,
-): (input: Input) => Promise<EnrichedReturn> {
+): (input: Input, inputOptions?: InputOptions) => Promise<EnrichedReturn> {
 	let queue: Queue<Input, EnrichedReturn> = [];
 	let previousResult: Awaited<Return> | undefined = undefined;
 
 	let batchTimer: ReturnType<typeof setTimeout> | undefined = undefined;
+	let batchTimerFunc: () => void = () => {};
 	let batchStartTimestamp: number | undefined = undefined;
 	let inProgressBatch: Input | undefined = undefined;
 	let previousPromise: ((result: EnrichedReturn) => void) | undefined =
@@ -162,8 +170,16 @@ export default function serialize<
 		else currentExecutions -= 1;
 	}
 
-	return async function (input: Input): Promise<EnrichedReturn> {
+	return async function (
+		input: Input,
+		inputOptions?: InputOptions,
+	): Promise<EnrichedReturn> {
 		return await new Promise<EnrichedReturn>(resolve => {
+			if (inputOptions?.startNewBatch) {
+				if (batchTimer) clearTimeout(batchTimer);
+				batchTimerFunc();
+			}
+
 			if (!options?.batch) {
 				queue.push({ resolve, input });
 				start();
@@ -193,19 +209,23 @@ export default function serialize<
 				if (batchTimer) clearTimeout(batchTimer);
 				inProgressBatch = batchTransformer(inProgressBatch, input);
 
-				if (previousPromise)
+				if (previousPromise) {
 					previousPromise({ message: 'batched' } as EnrichedReturn);
+				}
 				previousPromise = resolve;
 
-				batchTimer = setTimeout(() => {
+				batchTimerFunc = () => {
 					queue.push({ resolve, input: inProgressBatch || input });
 
 					inProgressBatch = undefined;
 					previousPromise = undefined;
 					batchStartTimestamp = undefined;
+					batchTimerFunc = () => {};
 
 					start();
-				}, thisDebounceInterval);
+				};
+
+				batchTimer = setTimeout(batchTimerFunc, thisDebounceInterval);
 			}
 		});
 	};

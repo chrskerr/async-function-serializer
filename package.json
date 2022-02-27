@@ -1,6 +1,6 @@
 {
 	"name": "async-function-serializer",
-	"version": "1.4.1",
+	"version": "1.4.2",
 	"description": "A helper which produces serial async functions without losing return values",
 	"main": "dist/index.js",
 	"types": "dist/index.d.ts",

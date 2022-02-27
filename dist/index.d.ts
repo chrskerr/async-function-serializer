@@ -51,10 +51,16 @@ export declare type SerializeOptions<Input, Return> = {
      */
     inputTransformer?: (input: Input, previousResult: Awaited<Return> | undefined) => Input | Promise<Input>;
 };
+declare type InputOptions = {
+    /**
+     * If a current batch is in-progress, this will close the batch to enable starting a new one.
+     * */
+    startNewBatch?: boolean;
+};
 declare type Result<R> = {
     data?: R;
     message?: unknown;
 };
-export default function serialize<Input, Return, EnrichedReturn extends Result<Return>>(func: (input: Input) => Return, options?: SerializeOptions<Input, Return>): (input: Input) => Promise<EnrichedReturn>;
+export default function serialize<Input, Return, EnrichedReturn extends Result<Return>>(func: (input: Input) => Return, options?: SerializeOptions<Input, Return>): (input: Input, inputOptions?: InputOptions) => Promise<EnrichedReturn>;
 export {};
 //# sourceMappingURL=index.d.ts.map
