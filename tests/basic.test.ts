@@ -1,4 +1,4 @@
-import serializer from '../dist/index.js';
+import serializer from '../src';
 
 const syncTestFunc = (numLoops: number): number => {
 	let result = 0;

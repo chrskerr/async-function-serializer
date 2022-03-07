@@ -1,4 +1,4 @@
-import serializer from '../dist/index.js';
+import serializer from '../src';
 
 jest.setTimeout(20_000);
 
