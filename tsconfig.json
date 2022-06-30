@@ -4,12 +4,12 @@
 		"declarationMap": true,
 		"esModuleInterop": true,
 		"forceConsistentCasingInFileNames": true,
-		"outDir": "./dist", 
-		"module": "commonjs", 
+		"outDir": "./dist",
+		"module": "esnext",
 		"moduleResolution": "node",
-		"sourceMap": true, 
-		"strict": true, 
-		"target": "es6"
+		"sourceMap": true,
+		"strict": true,
+		"target": "esnext"
 	},
 	"include": [
 		"src"

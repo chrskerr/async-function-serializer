@@ -1,4 +1,4 @@
-export declare type SerializeOptions<Input, Return> = {
+declare type SerializeOptions<Input, Return> = {
     /**
      * Maximum number of simultaneous executions
      * @defaultValue 1
@@ -61,6 +61,6 @@ declare type Result<R> = {
     data?: R;
     message?: unknown;
 };
-export default function serialize<Input, Return, EnrichedReturn extends Result<Return>>(func: (input: Input) => Return, options?: SerializeOptions<Input, Return>): (input: Input, inputOptions?: InputOptions) => Promise<EnrichedReturn>;
-export {};
-//# sourceMappingURL=index.d.ts.map
+declare function serialize<Input, Return, EnrichedReturn extends Result<Return>>(func: (input: Input) => Return, options?: SerializeOptions<Input, Return>): (input: Input, inputOptions?: InputOptions) => Promise<EnrichedReturn>;
+
+export { SerializeOptions, serialize as default };
