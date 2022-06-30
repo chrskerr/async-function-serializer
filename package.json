@@ -1,6 +1,6 @@
 {
 	"name": "async-function-serializer",
-	"version": "2.0.0",
+	"version": "2.0.1",
 	"description": "A helper which produces serial async functions without losing return values",
 	"main": "./dist/index.js",
 	"module": "./dist/index.mjs",
@@ -10,7 +10,8 @@
 			"require": "./dist/index.js",
 			"import": "./dist/index.mjs",
 			"types": "./dist/index.d.ts"
-		}
+		},
+		"./package.json": "./package.json"
 	},
 	"scripts": {
 		"build": "tsup src/index.ts --format cjs,esm --dts --clean",
